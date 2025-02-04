@@ -1,4 +1,5 @@
 import random
+from noise import pnoise2
 #we need a function that will start the game. it will print a welcome message and instructions for the game
 def StartGame():
   print("Welcome to the Golf Game!")
@@ -13,21 +14,35 @@ def RollDice():
   return random.randint(1, 6)
 
 # we need to creata function that will create a grid. it will use list comprehension t create a 2D list of '.' characters
-def CreateGrid(rows, cols):
-  grid = [['.' for _ in range(cols)] for _ in range(rows)]
-  return grid
-#we neeed to create a function that will place the ball in the last row of the grid. it will place the ball in a random column
-def PlaceBall(grid, rows, cols):
-    ball_col = random.randint(0, cols - 1)
-    grid[rows - 1][ball_col] = 'o'
-    return grid
+def GeneratePerlinTerrain(rows, cols, scale=10.0):
+    terrain = []
+    for y in range(rows):
+        row = []
+        for x in range(cols):
+            value = pnoise2(x / scale, y / scale, octaves=6, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=42)
+            print(value)
+            if value < -0.05:
+                row.append('#')  # Sand
+            elif value < 0.05:
+                row.append('~')  # water
+            else:
+                row.append('.')  # fairway
+            
+        terrain.append(row)
+        
+    return terrain
 
-#we need to create a function that will place the hole in the second row of the grid. it will place the hole in a random column
-def Hole(grid, cols):
-    hole_col = random.randint(0, cols - 1)
+def PlaceBall(terrain, rows, cols):
+    ball_col = random.randint(0, cols - 1)
+    terrain[rows - 1][ball_col] = '⚪'
+    print ("ball placed at: ", rows - 1, ball_col)
+    return terrain
+
+def Hole(terrain, cols):
     hole_row = random.randint(0, 2)
-    grid[hole_row][hole_col] = 'H'
-    return grid
+    hole_col = random.randint(0, cols - 1)
+    terrain[hole_row][hole_col] = '🕳️'
+    return terrain
 
 
 # i need to create movement logic for the ball. the player will likely have to decide to split the points rolled by the dice. so if they get a 5, they can move the ball 5 spaces or move it 3 spaces and then 2 spaces. the player will have to decide how to split the points
@@ -38,11 +53,8 @@ def Hole(grid, cols):
 
 # i need to creat a way to color rows and columns of the grid. the colors will decide of they are in sand or grass. the ball will move slower in sand than in grass
 
-rows = random.randint(10, 20)
-cols = random.randint(5, 10)
-
-StartGame()
-grid = CreateGrid(rows, cols)
+rows, cols = 20, 40
+grid = GeneratePerlinTerrain(rows, cols)
 grid = PlaceBall(grid, rows, cols)
 grid = Hole(grid, cols)
 
