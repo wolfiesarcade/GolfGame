@@ -13,7 +13,8 @@ def StartGame():
 def RollDice():
   return random.randint(1, 6)
 
-# we need to creata function that will create a grid. it will use list comprehension t create a 2D list of '.' characters
+#we are perlin noise users now. we are just cool like that. 
+
 def GeneratePerlinTerrain(rows, cols, scale=10.0):
     terrain = []
     for y in range(rows):
@@ -32,12 +33,13 @@ def GeneratePerlinTerrain(rows, cols, scale=10.0):
         
     return terrain
 
+# this is for the sake of placing the ball on a random position on the grid
 def PlaceBall(terrain, rows, cols):
     ball_col = random.randint(0, cols - 1)
     terrain[rows - 1][ball_col] = '⚪'
     print ("ball placed at: ", rows - 1, ball_col)
     return terrain
-
+#this is to create the hole on a random position on the grid
 def Hole(terrain, cols):
     hole_row = random.randint(0, 2)
     hole_col = random.randint(0, cols - 1)
