@@ -1,6 +1,11 @@
 import random
 from noise import pnoise2
-#we need a function that will start the game. it will print a welcome message and instructions for the game
+#had to turn all that AI stuff off. too much noise. i only needed it to figure out terrain generation anyways + i dont know what its doing sometimes. so it doesnt matter if my code is not top tier. as long as i know what tf its doing im happy.  
+
+# this is how many rows and colums will be fed into our functions. it serves as both a map and the paper for the map. 
+rows, cols = 20, 40 
+
+#pretty self explanatory.
 def StartGame():
   print("Welcome to the Golf Game!")
   print("You have to hit the ball in the hole in the least number of strokes using the dice we give you.")
@@ -9,19 +14,27 @@ def StartGame():
   input()
   print("Game started!")
 
-#we need a fuction that will simulate rolling a dice. it will return a random number between 1 and 6
-def RollDice():
-  return random.randint(1, 6)
+# #some experimentation. its been a while. 
 
-#we are perlin noise users now. we are just cool like that. 
+
+# def TestFunction():
+#   inner_variable = []
+#   for i in range(0,6):
+#     inner_variable.append(i)
+#   return inner_variable
+# test_variable = TestFunction()
+
+
+
+# TestFunction()
+# print (test_variable)
 
 def GeneratePerlinTerrain(rows, cols, scale=10.0):
     terrain = []
     for y in range(rows):
         row = []
         for x in range(cols):
-            value = pnoise2(x / scale, y / scale, octaves=6, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=42)
-            print(value)
+            value = pnoise2(x / scale, y / scale, octaves=6, persistence=0.5, lacunarity=2.0, repeatx=1024, repeaty=1024, base=42)# ask the ai what any of this does i dont know
             if value < -0.05:
                 row.append('#')  # Sand
             elif value < 0.05:
@@ -31,35 +44,93 @@ def GeneratePerlinTerrain(rows, cols, scale=10.0):
             
         terrain.append(row)
         
-    return terrain
+    return terrain 
+#what we've essentialy done is create a function that takes a certain amount of rows and cols. it creates a list that creates an amount of lists equal to the amount of rows we give it. the cols parameter is more the amount of values in each list. as for scale? idk gimme like 6 minutes. im kinda just figuring out how cool everything is since i turned the ai off. 
 
-# this is for the sake of placing the ball on a random position on the grid
-def PlaceBall(terrain, rows, cols):
+
+game_terrain = GeneratePerlinTerrain(rows, cols)
+
+#lol ive always found my paranoia with coding funny. yes peter the list in game terrain is the same in place ball. all you're doing in placeball() is just changing one of the values to a ball...you could do it all in the same function pretty much. 
+def PlaceBall(game_terrain, rows, cols):
     ball_col = random.randint(0, cols - 1)
-    terrain[rows - 1][ball_col] = '⚪'
-    print ("ball placed at: ", rows - 1, ball_col)
-    return terrain
-#this is to create the hole on a random position on the grid
-def Hole(terrain, cols):
-    hole_row = random.randint(0, 2)
-    hole_col = random.randint(0, cols - 1)
-    terrain[hole_row][hole_col] = '🕳️'
-    return terrain
+    ball_row = rows - 1
+    game_terrain[ball_row][ball_col] = '⚪'
+    return game_terrain, ball_row, ball_col
+
+#need to get the values out of the function somehow.
+game_terrain, ball_row, ball_col =  PlaceBall(game_terrain, rows, cols) 
+
+# im only using parameter cols because i dont need to go deep in the list. i just need to place a random hole in one of the first lists. the col is the amount of values in the each list so im just placing one hole there. man i wish i didnt start off using ai for this. id be so excited
+def PlaceHole(game_terrain, cols): 
+    hole_row = random.randint (0, 2)
+    hole_col = random.randint(0,cols - 1 )
+    game_terrain[hole_row][hole_col] = '🕳️'
+    return game_terrain, hole_col, hole_row
+
+game_terrain, hole_col, hole_row = PlaceHole(game_terrain, cols)
+for row in game_terrain:
+     print(' '.join(row))
 
 
-# i need to create movement logic for the ball. the player will likely have to decide to split the points rolled by the dice. so if they get a 5, they can move the ball 5 spaces or move it 3 spaces and then 2 spaces. the player will have to decide how to split the points
 
-# i need to create a function that will check if the ball is in the hole. if the ball is in the hole, the game will end and the player will win
+#ok im on my own now, no ai, nothing. thug it out. 
+#i want the parameter of my list form of game terrain because i need to manipulate it for movement. we are gonna be using logic from place ball too. so i need rows, col i think
+def GameLogic(game_terrain, rows, cols):
+  not_in_hole = True
+  internal_ball_row = ball_row
+  internal_ball_col = ball_col
+  space_left_up = internal_ball_row
+  space_left_down = rows - ball_row
+  need_to_roll_dice = True
+  if need_to_roll_dice:
+    roll_dice = random.randint(1, 6)  # we roll the dice
+    print(f'you rolled a {roll_dice}!!')
+  moves_left = roll_dice
 
-# i need to create a function that will check if the ball is out of bounds. if the ball is out of bounds, the player will lose the game
+  while not_in_hole:
+    movement_query = input("how do you want to move the ball? (up, down, left, right)")
+    if movement_query == "up":
+      movement_up = int(input("How many spaces do you want to move the ball up?"))
+      if movement_up > roll_dice:
+        print(f'you only have {roll_dice} moves so you cannot move that far')
+      elif movement_up > space_left_up:
+        print(f'you went out of bounds. remember you only have {space_left_up} moves up')
+        game_terrain[internal_ball_row][internal_ball_col] = '⚪'
+      elif game_terrain[internal_ball_row][internal_ball_col] == game_terrain[hole_row][hole_col]:
+        print("ayyy you got it in. good job")
+        not_in_hole = False
+      else:
+        if internal_ball_col + 1 >= cols:
+          game_terrain[internal_ball_row][internal_ball_col] = game_terrain[ball_row][ball_col - 1]
+        elif internal_ball_col - 1 <= 0:
+          game_terrain[internal_ball_row][internal_ball_col] = game_terrain[ball_row][ball_col + 1]
+        else:
+          game_terrain[internal_ball_row][internal_ball_col] = '.'
+          internal_ball_row = internal_ball_row - movement_up
+          space_left_up = internal_ball_row
+          game_terrain[internal_ball_row][internal_ball_col] = '⚪'
+          moves_left = moves_left - movement_up
+          print(f'you have {moves_left} moves left')
+          for row in game_terrain:
+            print(' '.join(row))
+          if moves_left == 0:
+            need_to_roll_dice = True
+          else:
+            need_to_roll_dice = False
 
-# i need to creat a way to color rows and columns of the grid. the colors will decide of they are in sand or grass. the ball will move slower in sand than in grass
+              
 
-rows, cols = 20, 40
-grid = GeneratePerlinTerrain(rows, cols)
-grid = PlaceBall(grid, rows, cols)
-grid = Hole(grid, cols)
+            
 
-for row in grid:
-    print(' '.join(row))
+
+GameLogic(game_terrain, rows, cols)
+
+
+
+
+
+
+
+
+
 
