@@ -79,9 +79,9 @@ def GameLogic(game_terrain, rows, cols):
   not_in_hole = True
   internal_ball_row = ball_row
   internal_ball_col = ball_col
-  space_left_up = internal_ball_row
-  space_left_right = cols - internal_ball_col
-  space_left_down = rows - ball_row
+  space_left_up = internal_ball_row 
+  space_left_right = cols - internal_ball_col - 1
+  space_left_down = rows - ball_row - 1
   need_to_roll_dice = True
 
   while not_in_hole:
@@ -97,7 +97,7 @@ def GameLogic(game_terrain, rows, cols):
       if movement_up > moves_left: #if the movement up is greater than the moves left we tell them they cant move that far and we move on to the next iteration of the loop
         print(f'you only have {roll_dice} moves so you cannot move that far')
       elif movement_up > space_left_up:# if the movement up is greater than the space left up we tell them they cant move that far and we move on to the next iteration of the loop
-        print(f'you went out of bounds. remember you only have {space_left_up} moves up')
+        print(f'you went out of bounds. remember you only have {space_left_up} moves above')
         game_terrain[internal_ball_row][internal_ball_col] = '⚪'#only doing this because sometimes we wont be where we started and i want to make sure the ball is where it need to be. probably not needed but eh
       elif game_terrain[internal_ball_row][internal_ball_col] == game_terrain[hole_row][hole_col]: #win condition. it needs more but not right now
         print("ayyy you got it in. good job")
@@ -109,6 +109,7 @@ def GameLogic(game_terrain, rows, cols):
         elif internal_ball_col - 1 <= 0:  #if the next column relative to the balls location is more than the amount of columns we still have to replace where the ball was with something so i chose what is to the right of the ball.
           game_terrain[internal_ball_row][internal_ball_col] = game_terrain[ball_row][ball_col + 1]
         else:
+          
           game_terrain[internal_ball_row][internal_ball_col] = game_terrain[ball_row][ball_col + 1] #we replace the current ball location with a whatever is to its right.
           internal_ball_row = internal_ball_row - movement_up #we change the internal ball row to the current location minus the movement up.
           space_left_up = internal_ball_row #we change the space left up to the current location minus the movement up.
@@ -127,21 +128,25 @@ def GameLogic(game_terrain, rows, cols):
       if movement_right > moves_left: #if the movement up is greater than the moves left we tell them they cant move that far and we move on to the next iteration of the loop
         print(f'you only have {roll_dice} moves so you cannot move that far')
       elif movement_right > space_left_right:# if the movement up is greater than the space left up we tell them they cant move that far and we move on to the next iteration of the loop
-        print(f'you went out of bounds. remember you only have {space_left_right} moves up')
+        print(f'you went out of bounds. remember you only have {space_left_right} spaces to the right')
         game_terrain[internal_ball_row][internal_ball_col] = '⚪'#only doing this because sometimes we wont be where we started and i want to make sure the ball is where it need to be. probably not needed but eh
       elif game_terrain[internal_ball_row][internal_ball_col] == game_terrain[hole_row][hole_col]: #win condition. it needs more but not right now
         print("ayyy you got it in. good job")
         not_in_hole = False
         break
       else:
+        
         if internal_ball_col + 1 >= cols: #if the next column relative to the balls location is more than the amount of columns we still have to replace where the ball was with something so i chose what is to the left of the ball.
           game_terrain[internal_ball_row][internal_ball_col] = game_terrain[ball_row][ball_col - 1]
         elif internal_ball_col - 1 <= 0:  #if the next column relative to the balls location is more than the amount of columns we still have to replace where the ball was with something so i chose what is to the right of the ball.
           game_terrain[internal_ball_row][internal_ball_col] = game_terrain[ball_row][ball_col + 1]
         else:
           game_terrain[internal_ball_row][internal_ball_col] = game_terrain[ball_row][ball_col + 1] #we replace the current ball location with a whatever is to its right.
-          internal_ball_col = internal_ball_col - movement_right #we change the internal ball row to the current location minus the movement up.
-          space_left_right = internal_ball_col #we change the space left up to the current location minus the movement up.
+          print(f'the internal ball col is {internal_ball_col}')
+          print(f'you have {space_left_right} to move right before math')
+          internal_ball_col = internal_ball_col + movement_right #we change the internal ball row to the current location minus the movement right.
+          space_left_right = cols - internal_ball_col - 1 #we change the space left up to the current location minus the movement right
+          print(f'you have {space_left_right} to move right')
           game_terrain[internal_ball_row][internal_ball_col] = '⚪' #we change the new current location to a ball.
           print(f'you moved right {movement_right} space/s') #we tell them how many spaces they moved.
           moves_left = moves_left - movement_right #we subtract the movement up from moves left.
@@ -157,7 +162,7 @@ def GameLogic(game_terrain, rows, cols):
       if movement_down > moves_left: #if the movement up is greater than the moves left we tell them they cant move that far and we move on to the next iteration of the loop
         print(f'you only have {roll_dice} moves so you cannot move that far')
       elif movement_down > space_left_down:# if the movement up is greater than the space left up we tell them they cant move that far and we move on to the next iteration of the loop
-        print(f'you went out of bounds. remember you only have {space_left_down} moves up')
+        print(f'you went out of bounds. remember you only have {space_left_down} spaces below')
         game_terrain[internal_ball_row][internal_ball_col] = '⚪'#only doing this because sometimes we wont be where we started and i want to make sure the ball is where it need to be. probably not needed but eh
       elif game_terrain[internal_ball_row][internal_ball_col] == game_terrain[hole_row][hole_col]: #win condition. it needs more but not right now
         print("ayyy you got it in. good job")
@@ -171,7 +176,7 @@ def GameLogic(game_terrain, rows, cols):
         else:
           game_terrain[internal_ball_row][internal_ball_col] = game_terrain[ball_row][ball_col + 1]
           internal_ball_row = internal_ball_row + movement_down
-          space_left_down = internal_ball_row
+          space_left_down = internal_ball_row - 1
           game_terrain[internal_ball_row][internal_ball_col] = '⚪'
           print(f'you moved down {movement_down} spaces')
           moves_left = moves_left - movement_down
@@ -187,7 +192,7 @@ def GameLogic(game_terrain, rows, cols):
       if movement_left > moves_left:
         print(f'you only have {roll_dice} moves so you cannot move that far')
       elif movement_left > space_left_right:
-        print(f'you went out of bounds. remember you only have {space_left_right} moves up')
+        print(f'you went out of bounds. remember you only have {space_left_right} spaces to the left')
         game_terrain[internal_ball_row][internal_ball_col] = '⚪'#only doing this because sometimes we wont be where we started and i want to make sure the ball is where it need to be. probably not needed but eh
       elif game_terrain[internal_ball_row][internal_ball_col] == game_terrain[hole_row][hole_col]: #win condition. it needs more but not right now
         print("ayyy you got it in. good job")
