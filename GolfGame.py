@@ -14,20 +14,8 @@ def StartGame():
   input()
   print("Game started!")
 
-# #some experimentation. its been a while. 
 
 
-# def TestFunction():
-#   inner_variable = []
-#   for i in range(0,6):
-#     inner_variable.append(i)
-#   return inner_variable
-# test_variable = TestFunction()
-
-
-
-# TestFunction()
-# print (test_variable)
 
 def GeneratePerlinTerrain(rows, cols, scale=10.0):
     terrain = []
