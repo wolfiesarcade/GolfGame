@@ -116,7 +116,7 @@ class GameLogic:
 
 
 
-if __name__ == "__main__":
-    game = GameLogic()
-    game.GameLoop()
+
+game = GameLogic()
+game.GameLoop()
     
