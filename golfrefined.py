@@ -82,6 +82,7 @@ class GameLogic:
 
   def Movement(self) -> str:
     direction = input("how do you want to move the ball? (up, down, left, right)")
+    self.courseterrain[self.ball_row][self.ball_col] = self.courseterrain_original[self.ball_row][self.ball_col] #replace ball with original terrain
     print(f'you moved {direction} {self.dice_result} spaces') 
     if direction == "up": 
       self.ball_row = self.ball_row - self.dice_result
@@ -95,19 +96,17 @@ class GameLogic:
       self.ball_col = self.ball_col + self.dice_result
       #we change the internal ball column to the current location plus the dice result.
     else:
-      print('invalid direction')      
+      print('invalid direction')    
+    self.courseterrain[self.ball_row][self.ball_col] = '⚪'  
     return direction
+    
       
     #space_left_up = self.ball_position_row
     #we change the space left up to the current location minus the movement up.
   
-  def BallMover(self):
-    self.course.terrain[self.ball_row][self.ball_col] = '⚪'
+    
 
-  def BallReplace(self):
-    row = self.course.GetOriginalTerrain(self.ball_row,self.ball_col)
-    print(row)
-    self.courseterrain[self.ball_row][self.ball_col] = row  #replaces the location on the grid we are playing with with the one from the original list
+
   def GetHoleRowAndCol(self) -> int:
      self.hole_row, self.hole_col = self.course.PlaceHole()
      return self.hole_row, self.hole_col #its weird and dirty i know but it kept being called in wincondition so i had to put it here.
@@ -132,10 +131,8 @@ class GameLogic:
     while self.WinCondition():
       self.Dice()
       self.Movement()
-      self.BallReplace()      
-      self.BallMover()
+      # self.BallMoverandReplace()
       self.TerrainRefiner()
-
 
 
 
