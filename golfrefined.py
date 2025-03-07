@@ -1,11 +1,9 @@
 import random
 from noise import pnoise2
 class GolfCourse:
-  def __init__(self, row: int, col: int, ballrow: int, ballcol: int):
+  def __init__(self, row: int, col: int): #course doesn't need to know where the ball is, just set it based on inputs
     self.row = row #the amount of rows.
     self.col = col #the amount of colums.
-    self.ball_col = ballcol
-    self.ball_row = ballrow
     self.terrain: list = []
     self.terrain_original: list = []
     
@@ -23,43 +21,26 @@ class GolfCourse:
         self.terrain.append(row)
         self.terrain_original.append(row.copy())  # Append a copy of the row to terrain_original
         
-  def GetOriginalTerrain(self, row, col) -> list:
-     return self.terrain_original[self.ball_row][self.ball_col]
+  def GetOriginalTerrain(self, row, col) -> str:
+     return self.terrain_original[row][col] 
   
-  def GetTerrain(self) -> list:
-     return self.terrain
+  def ReplaceTerrain(self, row, col):
+     self.terrain[row][col] = self.GetOriginalTerrain(row, col)
      
   def PlaceHole(self) -> tuple: 
     hole_row = random.randint(0, 2)
     hole_col = random.randint(self.col - 3, self.col - 1)
     self.terrain[hole_row][hole_col] = '🕳️'
     return hole_row, hole_col
-
-  def GetCourseRowAndCol(self) -> int:
-     return self.col, self.row
   
-  def SetBallPos(self): #we set the ball position on a large golfcourse as our starting point
-    self.terrain[self.ball_row][self.ball_col] = '⚪'
-    
+  def SetBallPos(self, row, col): #we set the ball position on a large golfcourse as our starting point
+    self.terrain[row][col] = '⚪' #use input variables instead of class variables
         
 class GolfBall:
+  #GolfBall now contains its own data, reducing the need for other objects to store this data
   def __init__(self, row):
-     self.row = row
-  
-  def PlaceBall(self) -> int :
-    ball_row: int = self.row - 1
-    ball_col = random.randint(0, 9)
-    return ball_col, ball_row
-
-# class GolfClub: this seems super obselete because golfclubs dont have dice...but like in the video you sent me the club was a pencil that was a dice. so maybe.... i put the dice in this class? but it seems more like game logic hence my decicion. 
-#   def __init__(self, dice):
-#      self.dice_result = dice
-#   # def Stroke(self) -> str:
-#   #   #we replace the current ball location with whatever is in the original list
-
-#   #   #we tell them how many spaces they moved.
-#   #   return direction
-
+     self.row = row - 1
+     self.col = random.randint(0, 9)
   
 class GameLogic:
   def __init__(self, GolfBall, GolfCourse):
@@ -69,12 +50,12 @@ class GameLogic:
       print("Game started!")
       game_row: int = 20
       game_col: int = 40
-      self.ball = GolfBall(game_row) #get golfball value
-      self.ball_col, self.ball_row = self.ball.PlaceBall()#insert golfball values into variables we can access
-      self.course = GolfCourse(game_row, game_col, self.ball_row, self.ball_col)#insert variables 
-      self.courseterrain = self.course.GetTerrain()
-
-      
+      self.course = GolfCourse(game_row, game_col)#changed the order of things. first, make the course, 
+      self.course.GenerateGolfCourse() #generate terrain, 
+      self.ball = GolfBall(game_row) #make ball, 
+      self.course.SetBallPos(self.ball.row, self.ball.col)#place ball, 
+      self.hole_row, self.hole_col = self.course.PlaceHole()#place hole, 
+      self.TerrainRefiner() #print refined terrain using joins. should prevent data from being overwritten this way.
 
   def Dice(self) -> int:
      self.dice_result =  random.randint(1,6)
@@ -82,59 +63,56 @@ class GameLogic:
 
   def Movement(self) -> str:
     direction = input("how do you want to move the ball? (up, down, left, right)")
-    self.courseterrain[self.ball_row][self.ball_col] = self.courseterrain_original[self.ball_row][self.ball_col] #replace ball with original terrain
+    self.course.ReplaceTerrain(self.ball.row, self.ball.col) #setter method is easier to read
     print(f'you moved {direction} {self.dice_result} spaces') 
     if direction == "up": 
-      self.ball_row = self.ball_row - self.dice_result
-      #we change the ball row in this class to the current location minus the dice roll result.
+      self.ball.row -= self.dice_result #operators instead of statements is a bit cleaner
     elif direction == "down":
-      self.ball_row = self.ball_row + self.dice_result
-      #we change the internal ball row to the current location plus the dice result.
+      self.ball.row += self.dice_result
     elif direction == "left":
-      self.ball_col = self.ball_col - self.dice_result
+      self.ball.col -= self.dice_result
     elif direction == "right": 
-      self.ball_col = self.ball_col + self.dice_result
-      #we change the internal ball column to the current location plus the dice result.
+      self.ball.col += self.dice_result
     else:
-      print('invalid direction')    
-    self.courseterrain[self.ball_row][self.ball_col] = '⚪'  
+      print('invalid direction')
+    if self.BoundsCheck(): #checking to see whether the ball values used in the array would cause an index out of bounds error, if so fixed it
+      print('whoops, ball went out of bounds, setting it back within bounds...')
+    self.course.SetBallPos(self.ball.row, self.ball.col)
     return direction
-    
-      
-    #space_left_up = self.ball_position_row
-    #we change the space left up to the current location minus the movement up.
   
-    
-
-
-  def GetHoleRowAndCol(self) -> int:
-     self.hole_row, self.hole_col = self.course.PlaceHole()
-     return self.hole_row, self.hole_col #its weird and dirty i know but it kept being called in wincondition so i had to put it here.
+  def BoundsCheck(self) -> bool:
+    if self.ball.row < 0:
+      self.ball.row = 0
+      return True
+    elif self.ball.row >= self.course.row:
+      self.ball.row = self.course.row-1
+      return True
+    if self.ball.col < 0:
+      self.ball.col = 0
+      return True
+    elif self.ball.col >= self.course.col:
+      self.ball.col = self.course.col-1
+      return True
+    return False
+        
 
   def WinCondition(self) -> bool:
-     if self.ball_row == self.hole_row and self.ball_col == self.hole_col:
-        print("you winnnnnnnnn!!!!!!!!!!!")
-        return False
-     else:
-        return True
+    if self.ball.row == self.hole_row and self.ball.col == self.hole_col:
+      print("you winnnnnnnnn!!!!!!!!!!!")
+      return False
+    else:
+      return True
       
   def TerrainRefiner(self) -> list:
-     for row in self.courseterrain:
+     for row in self.course.terrain:
       print(' '.join(row))
       
-  def GameLoop(self) -> list:    
-    self.course.GenerateGolfCourse() #create the terrain
-    self.hole_row, self.hole_col = self.course.PlaceHole()
-    self.course.SetBallPos()
-    #place the ball and the hole
-    self.TerrainRefiner() #refine it from its list format using joins
+  def GameLoop(self) -> list:
+    #since all that stuff was done before the loop, placed it in init instead, makes more sense
     while self.WinCondition():
-      self.Dice()
-      self.Movement()
-      # self.BallMoverandReplace()
-      self.TerrainRefiner()
-
-
+      self.Dice() #random movement modifier
+      self.Movement() #movement decided based on direction input
+      self.TerrainRefiner() #print the resulting change to the terrain and ball location
 
 game = GameLogic(GolfBall, GolfCourse)
 game.GameLoop()
