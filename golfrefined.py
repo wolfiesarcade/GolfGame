@@ -1,4 +1,8 @@
 import random
+import socketserver
+import socket
+import json
+
 from noise import pnoise2
 class GolfCourse:
   def __init__(self, row: int, col: int): #course doesn't need to know where the ball is, just set it based on inputs
@@ -42,7 +46,55 @@ class GolfBall:
   def __init__(self, row):
      self.row = row - 1
      self.col = random.randint(0, 9)
+class Multiplayer():
+  def __init__(self):
+    P1_direction = " "
+    P2_direction = " "
+    P1_count = 0
+    P2_count = 1
+    self.clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    self.clientsocket.connect(('localhost', 6969))
+
   
+  #this is the request handler
+  # def Distribute(self,terrain):
+  #   self.clientsocket.send(terrain)
+
+  def DistributeTerrain(self, terrain):
+    data = json.dumps(terrain)
+    encoded = data.encode("utf-8")
+    self.clientsocket.send(encoded)
+    
+  def DistributeDice(self,diceresult):
+    dicedata = diceresult
+    diceroll = dicedata.to_bytes()
+    self.clientsocket.send(diceroll)
+  
+  def Receive_direction(self) -> str:
+    self.serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    self.serversocket.bind(('localhost', 6970))
+    self.serversocket.listen(2)
+    self.connection = self.serversocket.accept()[0]
+    buf = self.connection.recv(9999)
+    self.direction = buf.decode("utf-8")
+    print(self.direction)
+  def Recieve(self):
+    serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    serversocket.bind(('localhost', 6969))
+    serversocket.listen(2)
+    while True:
+      connection, address = serversocket.accept()
+      buf = connection.recv(10)
+      if self.P1_count < self.P2_count:
+        print(buf)
+      break
+  def NetworkTerrainRefiner(self, terrain) -> list:
+    b = bytearray()
+    data = json.dumps(terrain)
+    # for row in terrain:
+    #   self.Distribute(' '.join(row).encode())
+
+    
 class GameLogic:
   def __init__(self, GolfBall, GolfCourse):
       print("Welcome to the Golf Game!")
@@ -57,7 +109,10 @@ class GameLogic:
       self.ball = GolfBall(game_row) #make ball, 
       self.course.SetBallPos(self.ball.row, self.ball.col)#place ball, 
       self.hole_row, self.hole_col = self.course.PlaceHole()#place hole, 
+      self.multiplayer = Multiplayer()
       self.TerrainRefiner() #print refined terrain using joins. should prevent data from being overwritten this way.
+      self.clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      self.clientsocket.connect(('localhost', 6969))
 
   def Dice(self) -> int:
      self.dice_result =  random.randint(1,6)
@@ -75,7 +130,6 @@ class GameLogic:
       print('your movement is divided by 2 because you are in sand')
     elif self.course.GetOriginalTerrain(self.ball.row,self.ball.col) == '~':
       water_math = self.dice_result // 3
-      print(water_math)
       self.dice_result = int(water_math)
       print('your movement is divided by 3 because you are in water')
     else:
@@ -130,14 +184,20 @@ class GameLogic:
      for row in self.course.terrain:
       print(' '.join(row))
       
+
+
   def GameLoop(self) -> list:
     #since all that stuff was done before the loop, placed it in init instead, makes more sense
     while self.WinCondition():
+      self.multiplayer.DistributeTerrain(self.course.terrain)
       self.Dice() #random movement modifier
+      self.multiplayer.DistributeDice(self.dice_result)
       self.ParCount()# par counter
       self.MovementCost()# duh
+      self.multiplayer.Receive_direction()
       self.Movement() #movement decided based on direction input
       self.TerrainRefiner() #print the resulting change to the terrain and ball location
+      # self.multiplayer.Distribute(self.course.terrain) #opushes each row to the client
 
 game = GameLogic(GolfBall, GolfCourse)
 game.GameLoop()
