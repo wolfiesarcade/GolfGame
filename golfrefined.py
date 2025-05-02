@@ -1,5 +1,4 @@
 import random
-import socketserver
 import socket
 import json
 
@@ -46,6 +45,7 @@ class GolfBall:
   def __init__(self, row):
      self.row = row - 1
      self.col = random.randint(0, 9)
+     
 class Multiplayer():
   def __init__(self):
     self.clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -65,8 +65,13 @@ class Multiplayer():
         clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         clientsocket.connect(('localhost', 6971))
         clientsocket.send(movementcost.encode("utf-8"))
-            
-            
+  
+  def DistributeSpacesMoved(self, spacesmoved, playernumber):
+    if playernumber % 2 == 0:
+        clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        clientsocket.connect(('localhost', 6972))
+        clientsocket.send(spacesmoved.encode("utf-8")) 
+                
   def Receive_direction(self, playernumber) -> str:
     if playernumber % 2 == 0:
       self.serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -132,7 +137,8 @@ class GameLogic:
     else:
       direction = input("how do you want to move the ball? (up, down, left, right)")
     self.course.ReplaceTerrain(self.ball.row, self.ball.col) #setter method is easier to read
-    print(f'you moved {direction} {self.dice_result} spaces') 
+    self.spacesmoved = f'you moved {direction} {self.dice_result} spaces'
+    print(self.spacesmoved)
     if direction == "up": 
       self.ball.row -= self.dice_result #operators instead of statements is a bit cleaner
     elif direction == "down":
@@ -188,6 +194,7 @@ class GameLogic:
       self.MovementCost()# duh
       self.multiplayer.DistributeMovementcost(self.movementcostmessage, self.player)
       self.Movement(self.multiplayer.Receive_direction(self.player)) #movement decided based on direction input
+      self.multiplayer.DistributeSpacesMoved(self.spacesmoved, self.player)
       self.TerrainRefiner() #print the resulting change to the terrain and ball location
       # self.multiplayer.Distribute(self.course.terrain) #opushes each row to the client
 
