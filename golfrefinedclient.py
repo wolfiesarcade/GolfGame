@@ -72,8 +72,11 @@ class Multiplayer:
        print(' '.join(row))
        
   def ParCount(self) -> int:
-    print (f'Your current par count is {self.parcount}')
-    self.parcount+=1
+    if self.player % 2 == 0:
+      print (f'Your current par count is {self.parcount}')
+      self.parcount+=1
+    else:
+      pass
 
   def GameLoop(self) -> list:
     self.NetworkPreReq()
