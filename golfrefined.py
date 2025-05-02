@@ -48,29 +48,35 @@ class GolfBall:
      
 class Multiplayer():
   def __init__(self):
-    self.clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    self.clientsocket.connect(('localhost', 6969))  # Only connect once here
+    self.serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    self.serversocket.bind(('localhost', 6969))  # Only connect once here
+    self.serversocket.listen(1)
+    self.connection, _ = self.serversocket.accept()
 
   def DistributeTerrain(self, terrain):
     data = json.dumps(terrain)
     encoded = data.encode("utf-8")
-    self.clientsocket.send(encoded)
+    self.connection.send(encoded)
     
   def DistributeDice(self, diceresult):
     diceroll = diceresult.to_bytes(1, byteorder='big')
-    self.clientsocket.sendall(diceroll)
+    self.connection.sendall(diceroll)
 
   def DistributeMovementcost(self, movementcost, playernumber):
     if playernumber % 2 == 0:
-        clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        clientsocket.connect(('localhost', 6971))
-        clientsocket.send(movementcost.encode("utf-8"))
+      serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      serversocket.bind(('localhost', 6971))
+      serversocket.listen(1)
+      conn, _ = serversocket.accept()
+      conn.send(movementcost.encode("utf-8"))
   
   def DistributeSpacesMoved(self, spacesmoved, playernumber):
     if playernumber % 2 == 0:
-        clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        clientsocket.connect(('localhost', 6972))
-        clientsocket.send(spacesmoved.encode("utf-8")) 
+      serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      serversocket.bind(('localhost', 6972))
+      serversocket.listen(1)
+      conn, _ = serversocket.accept()
+      conn.send(spacesmoved.encode("utf-8")) 
                 
   def Receive_direction(self, playernumber) -> str:
     if playernumber % 2 == 0:
@@ -108,8 +114,9 @@ class GameLogic:
      print(f'you rolled a {self.dice_result}')
      
   def ParCount(self) -> int:
-    print (f'Your current par count is {self.parcount}')
     self.parcount+=1
+    print (f'Your current par count is {self.parcount}')
+    
   
   def MovementCost(self):
     self.movementcostmessage = ' '

@@ -10,45 +10,38 @@ class Multiplayer:
 
   
   def NetworkPreReq(self):
-    self.serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    self.serversocket.bind(('localhost', 6969))
-    self.serversocket.listen(1)  # Only one connection for now
-    self.connection, _ = self.serversocket.accept()  # Only accept once
+    self.clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    self.clientsocket.connect(('localhost', 6969))  # Only connect once here
+    # self.connection, _ = self.serversocket.accept()  # Only accept once
 
   def ReceiveTerrain(self) -> list:
-    buf = self.connection.recv(9999)
+    buf = self.clientsocket.recv(9999)
     self.terrain = json.loads(buf.decode("utf-8"))
     
   def ReceiveMovementCost(self) -> str:
     if self.player % 2 == 0:
-      self.serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      self.serversocket.bind(('localhost', 6971))
-      self.serversocket.listen(1)
-      conn, _ = self.serversocket.accept()
-      buf = conn.recv(1024)
+      clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      clientsocket.connect(('localhost', 6971))
+      buf = clientsocket.recv(1024)
       direction = buf.decode("utf-8")
       print(direction)
-      conn.close()
-      self.serversocket.close()
+      clientsocket.close()
     else:
       pass
     
   def ReciveSpacesMoved(self) -> str:
     if self.player % 2 == 0:
-      self.serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-      self.serversocket.bind(('localhost', 6972))
-      self.serversocket.listen(1)
-      conn, _ = self.serversocket.accept()
-      buf = conn.recv(1024)
+      clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      clientsocket.connect(('localhost', 6972))
+      buf = clientsocket.recv(1024)
       spaces_moved = buf.decode("utf-8")
       print(spaces_moved)
-      conn.close()
-      self.serversocket.close()
+      clientsocket.close()
     else:
       pass
     
   def ReceiveDice(self) -> list:
-    dice = int.from_bytes(self.connection.recv(1))
+    dice = int.from_bytes(self.clientsocket.recv(1))
     if self.player % 2 == 0:
       self.dice = dice
       print(f'you rolled a {self.dice}')
