@@ -85,11 +85,11 @@ class Multiplayer():
       self.serversocket.listen(1)
       conn, _ = self.serversocket.accept()
       buf = conn.recv(1024)
-      direction = buf.decode("utf-8")
-      print(direction)
+      self.direction = buf.decode("utf-8")
+      print(self.direction)
       conn.close()
       self.serversocket.close()
-      return direction
+      return self.direction
     
 class GameLogic:
   def __init__(self, GolfBall, GolfCourse):
@@ -142,7 +142,7 @@ class GameLogic:
       print(p2direction)
       direction = p2direction
     else:
-      direction = input("how do you want to move the ball? (up, down, left, right)")
+      direction = input("how do you want to move the ball? (up, down, left, right) ")
     self.course.ReplaceTerrain(self.ball.row, self.ball.col) #setter method is easier to read
     self.spacesmoved = f'you moved {direction} {self.dice_result} spaces'
     print(self.spacesmoved)

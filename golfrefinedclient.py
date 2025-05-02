@@ -53,7 +53,7 @@ class Multiplayer:
     if self.player % 2 == 0:
       clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       clientsocket.connect(('localhost', 6970))
-      direction = input("what direction do you want to move?")
+      direction = input("what direction do you want to move? ")
       clientsocket.send(direction.encode("utf-8"))
     else:
       print("waiting for player 1")
