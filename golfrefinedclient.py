@@ -1,6 +1,4 @@
 import socket
-import socketserver
-import struct
 import json
 
 
@@ -8,6 +6,7 @@ class Multiplayer:
   def __init__(self):
     self.terrain = " "
     self.player = 0
+    self.parcount = 0
 
   
   def NetworkPreReq(self):
@@ -33,8 +32,20 @@ class Multiplayer:
       self.serversocket.close()
     else:
       pass
-
-
+    
+  def ReciveSpacesMoved(self) -> str:
+    if self.player % 2 == 0:
+      self.serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+      self.serversocket.bind(('localhost', 6972))
+      self.serversocket.listen(1)
+      conn, _ = self.serversocket.accept()
+      buf = conn.recv(1024)
+      spaces_moved = buf.decode("utf-8")
+      print(spaces_moved)
+      conn.close()
+      self.serversocket.close()
+    else:
+      pass
     
   def ReceiveDice(self) -> list:
     dice = int.from_bytes(self.connection.recv(1))
@@ -44,7 +55,7 @@ class Multiplayer:
     else:
       pass
     
-  def sending(self):
+  def DistributeDirection(self):
 
     if self.player % 2 == 0:
       clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -59,6 +70,10 @@ class Multiplayer:
     # regular_list = json.loads(json_list)
     for row in json_list:
        print(' '.join(row))
+       
+  def ParCount(self) -> int:
+    print (f'Your current par count is {self.parcount}')
+    self.parcount+=1
 
   def GameLoop(self) -> list:
     self.NetworkPreReq()
@@ -69,7 +84,9 @@ class Multiplayer:
       self.TerrainRefiner()
       self.ReceiveDice()
       self.ReceiveMovementCost()
-      self.sending()
+      self.DistributeDirection()
+      self.ReciveSpacesMoved()
+      self.ParCount()
       
 
     
